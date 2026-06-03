@@ -87,7 +87,7 @@ function Role() {
             title="I drive cars"
             desc="Earn by driving other people's cars. Set your hours, build your trust score."
             accent="lime"
-            Icon={_S as typeof Car}
+            Icon={UserRoundCog}
             onClick={() => nav({ to: "/driver-home" })}
             delay={0.18}
           />
