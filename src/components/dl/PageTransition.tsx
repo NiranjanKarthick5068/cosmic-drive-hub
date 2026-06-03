@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import type { ReactNode } from "react";
 
 export function PageTransition({ children }: { children: ReactNode }) {
@@ -15,7 +15,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
   );
 }
 
-export const stagger = {
+export const stagger: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
@@ -23,7 +23,7 @@ export const stagger = {
   },
 };
 
-export const fadeUp = {
+export const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24, filter: "blur(4px)" },
   show: {
     opacity: 1,

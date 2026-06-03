@@ -1,8 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { PhoneFrame, StatusBar } from "@/components/dl/PhoneFrame";
-import { Car, Steering } from "lucide-react";
-import { Steering as _S } from "lucide-react";
+import { Car, UserRoundCog } from "lucide-react";
 
 export const Route = createFileRoute("/role")({ component: Role });
 
