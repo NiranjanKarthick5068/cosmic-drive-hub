@@ -9,8 +9,110 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WalletRouteImport } from './routes/wallet'
+import { Route as TrackingRouteImport } from './routes/tracking'
+import { Route as SubscriptionRouteImport } from './routes/subscription'
+import { Route as SearchingRouteImport } from './routes/searching'
+import { Route as RoleRouteImport } from './routes/role'
+import { Route as RideCompleteRouteImport } from './routes/ride-complete'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as OtpRouteImport } from './routes/otp'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as IncomingRideRouteImport } from './routes/incoming-ride'
+import { Route as HomeRouteImport } from './routes/home'
+import { Route as DriverHomeRouteImport } from './routes/driver-home'
+import { Route as DriverFoundRouteImport } from './routes/driver-found'
+import { Route as BookingsRouteImport } from './routes/bookings'
+import { Route as BookRouteImport } from './routes/book'
 import { Route as IndexRouteImport } from './routes/index'
 
+const WalletRoute = WalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrackingRoute = TrackingRouteImport.update({
+  id: '/tracking',
+  path: '/tracking',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SubscriptionRoute = SubscriptionRouteImport.update({
+  id: '/subscription',
+  path: '/subscription',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchingRoute = SearchingRouteImport.update({
+  id: '/searching',
+  path: '/searching',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoleRoute = RoleRouteImport.update({
+  id: '/role',
+  path: '/role',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RideCompleteRoute = RideCompleteRouteImport.update({
+  id: '/ride-complete',
+  path: '/ride-complete',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OtpRoute = OtpRouteImport.update({
+  id: '/otp',
+  path: '/otp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IncomingRideRoute = IncomingRideRouteImport.update({
+  id: '/incoming-ride',
+  path: '/incoming-ride',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DriverHomeRoute = DriverHomeRouteImport.update({
+  id: '/driver-home',
+  path: '/driver-home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DriverFoundRoute = DriverFoundRouteImport.update({
+  id: '/driver-found',
+  path: '/driver-found',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookingsRoute = BookingsRouteImport.update({
+  id: '/bookings',
+  path: '/bookings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookRoute = BookRouteImport.update({
+  id: '/book',
+  path: '/book',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +121,270 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/book': typeof BookRoute
+  '/bookings': typeof BookingsRoute
+  '/driver-found': typeof DriverFoundRoute
+  '/driver-home': typeof DriverHomeRoute
+  '/home': typeof HomeRoute
+  '/incoming-ride': typeof IncomingRideRoute
+  '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
+  '/onboarding': typeof OnboardingRoute
+  '/otp': typeof OtpRoute
+  '/profile': typeof ProfileRoute
+  '/ride-complete': typeof RideCompleteRoute
+  '/role': typeof RoleRoute
+  '/searching': typeof SearchingRoute
+  '/subscription': typeof SubscriptionRoute
+  '/tracking': typeof TrackingRoute
+  '/wallet': typeof WalletRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/book': typeof BookRoute
+  '/bookings': typeof BookingsRoute
+  '/driver-found': typeof DriverFoundRoute
+  '/driver-home': typeof DriverHomeRoute
+  '/home': typeof HomeRoute
+  '/incoming-ride': typeof IncomingRideRoute
+  '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
+  '/onboarding': typeof OnboardingRoute
+  '/otp': typeof OtpRoute
+  '/profile': typeof ProfileRoute
+  '/ride-complete': typeof RideCompleteRoute
+  '/role': typeof RoleRoute
+  '/searching': typeof SearchingRoute
+  '/subscription': typeof SubscriptionRoute
+  '/tracking': typeof TrackingRoute
+  '/wallet': typeof WalletRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/book': typeof BookRoute
+  '/bookings': typeof BookingsRoute
+  '/driver-found': typeof DriverFoundRoute
+  '/driver-home': typeof DriverHomeRoute
+  '/home': typeof HomeRoute
+  '/incoming-ride': typeof IncomingRideRoute
+  '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
+  '/onboarding': typeof OnboardingRoute
+  '/otp': typeof OtpRoute
+  '/profile': typeof ProfileRoute
+  '/ride-complete': typeof RideCompleteRoute
+  '/role': typeof RoleRoute
+  '/searching': typeof SearchingRoute
+  '/subscription': typeof SubscriptionRoute
+  '/tracking': typeof TrackingRoute
+  '/wallet': typeof WalletRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/book'
+    | '/bookings'
+    | '/driver-found'
+    | '/driver-home'
+    | '/home'
+    | '/incoming-ride'
+    | '/login'
+    | '/notifications'
+    | '/onboarding'
+    | '/otp'
+    | '/profile'
+    | '/ride-complete'
+    | '/role'
+    | '/searching'
+    | '/subscription'
+    | '/tracking'
+    | '/wallet'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/book'
+    | '/bookings'
+    | '/driver-found'
+    | '/driver-home'
+    | '/home'
+    | '/incoming-ride'
+    | '/login'
+    | '/notifications'
+    | '/onboarding'
+    | '/otp'
+    | '/profile'
+    | '/ride-complete'
+    | '/role'
+    | '/searching'
+    | '/subscription'
+    | '/tracking'
+    | '/wallet'
+  id:
+    | '__root__'
+    | '/'
+    | '/book'
+    | '/bookings'
+    | '/driver-found'
+    | '/driver-home'
+    | '/home'
+    | '/incoming-ride'
+    | '/login'
+    | '/notifications'
+    | '/onboarding'
+    | '/otp'
+    | '/profile'
+    | '/ride-complete'
+    | '/role'
+    | '/searching'
+    | '/subscription'
+    | '/tracking'
+    | '/wallet'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BookRoute: typeof BookRoute
+  BookingsRoute: typeof BookingsRoute
+  DriverFoundRoute: typeof DriverFoundRoute
+  DriverHomeRoute: typeof DriverHomeRoute
+  HomeRoute: typeof HomeRoute
+  IncomingRideRoute: typeof IncomingRideRoute
+  LoginRoute: typeof LoginRoute
+  NotificationsRoute: typeof NotificationsRoute
+  OnboardingRoute: typeof OnboardingRoute
+  OtpRoute: typeof OtpRoute
+  ProfileRoute: typeof ProfileRoute
+  RideCompleteRoute: typeof RideCompleteRoute
+  RoleRoute: typeof RoleRoute
+  SearchingRoute: typeof SearchingRoute
+  SubscriptionRoute: typeof SubscriptionRoute
+  TrackingRoute: typeof TrackingRoute
+  WalletRoute: typeof WalletRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wallet': {
+      id: '/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof WalletRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tracking': {
+      id: '/tracking'
+      path: '/tracking'
+      fullPath: '/tracking'
+      preLoaderRoute: typeof TrackingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/subscription': {
+      id: '/subscription'
+      path: '/subscription'
+      fullPath: '/subscription'
+      preLoaderRoute: typeof SubscriptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/searching': {
+      id: '/searching'
+      path: '/searching'
+      fullPath: '/searching'
+      preLoaderRoute: typeof SearchingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/role': {
+      id: '/role'
+      path: '/role'
+      fullPath: '/role'
+      preLoaderRoute: typeof RoleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ride-complete': {
+      id: '/ride-complete'
+      path: '/ride-complete'
+      fullPath: '/ride-complete'
+      preLoaderRoute: typeof RideCompleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/otp': {
+      id: '/otp'
+      path: '/otp'
+      fullPath: '/otp'
+      preLoaderRoute: typeof OtpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/incoming-ride': {
+      id: '/incoming-ride'
+      path: '/incoming-ride'
+      fullPath: '/incoming-ride'
+      preLoaderRoute: typeof IncomingRideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/driver-home': {
+      id: '/driver-home'
+      path: '/driver-home'
+      fullPath: '/driver-home'
+      preLoaderRoute: typeof DriverHomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/driver-found': {
+      id: '/driver-found'
+      path: '/driver-found'
+      fullPath: '/driver-found'
+      preLoaderRoute: typeof DriverFoundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bookings': {
+      id: '/bookings'
+      path: '/bookings'
+      fullPath: '/bookings'
+      preLoaderRoute: typeof BookingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/book': {
+      id: '/book'
+      path: '/book'
+      fullPath: '/book'
+      preLoaderRoute: typeof BookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,17 +397,24 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BookRoute: BookRoute,
+  BookingsRoute: BookingsRoute,
+  DriverFoundRoute: DriverFoundRoute,
+  DriverHomeRoute: DriverHomeRoute,
+  HomeRoute: HomeRoute,
+  IncomingRideRoute: IncomingRideRoute,
+  LoginRoute: LoginRoute,
+  NotificationsRoute: NotificationsRoute,
+  OnboardingRoute: OnboardingRoute,
+  OtpRoute: OtpRoute,
+  ProfileRoute: ProfileRoute,
+  RideCompleteRoute: RideCompleteRoute,
+  RoleRoute: RoleRoute,
+  SearchingRoute: SearchingRoute,
+  SubscriptionRoute: SubscriptionRoute,
+  TrackingRoute: TrackingRoute,
+  WalletRoute: WalletRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
