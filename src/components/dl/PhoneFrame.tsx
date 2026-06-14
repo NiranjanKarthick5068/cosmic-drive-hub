@@ -1,16 +1,23 @@
 import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { Signal, Wifi, BatteryFull } from "lucide-react";
 
 export function StatusBar() {
-  const now = new Date();
-  const time = now.toLocaleTimeString("en-IN", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+  const [time, setTime] = useState("");
+  useEffect(() => {
+    const fmt = () =>
+      new Date().toLocaleTimeString("en-IN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
+    setTime(fmt());
+    const i = setInterval(() => setTime(fmt()), 30_000);
+    return () => clearInterval(i);
+  }, []);
   return (
     <div className="flex items-center justify-between px-6 pt-3 pb-2 text-[12px] font-medium text-text-primary/90 font-mono">
-      <span>{time}</span>
+      <span suppressHydrationWarning>{time || "\u00A0"}</span>
       <div className="flex items-center gap-1.5">
         <Signal className="w-3.5 h-3.5" />
         <Wifi className="w-3.5 h-3.5" />

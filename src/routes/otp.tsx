@@ -4,14 +4,22 @@ import { motion } from "framer-motion";
 import { PhoneFrame, StatusBar } from "@/components/dl/PhoneFrame";
 import { RippleButton } from "@/components/dl/RippleButton";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/otp")({ component: OTP });
 
 function OTP() {
   const nav = useNavigate();
+  const [email, setEmail] = useState("");
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const refs = useRef<(HTMLInputElement | null)[]>([]);
   const [timer, setTimer] = useState(30);
+  const [verifying, setVerifying] = useState(false);
+
+  useEffect(() => {
+    setEmail(sessionStorage.getItem("dl_otp_email") ?? "");
+  }, []);
 
   useEffect(() => {
     if (timer <= 0) return;
@@ -19,13 +27,39 @@ function OTP() {
     return () => clearTimeout(t);
   }, [timer]);
 
+  const verify = async (code: string) => {
+    if (!email) return toast.error("Email missing, go back");
+    setVerifying(true);
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token: code,
+      type: "email",
+    });
+    setVerifying(false);
+    if (error) {
+      toast.error(error.message);
+      setDigits(["", "", "", "", "", ""]);
+      refs.current[0]?.focus();
+      return;
+    }
+    nav({ to: "/role" });
+  };
+
   const setAt = (i: number, v: string) => {
     const n = v.replace(/\D/g, "").slice(-1);
     const next = [...digits];
     next[i] = n;
     setDigits(next);
     if (n && i < 5) refs.current[i + 1]?.focus();
-    if (next.every((d) => d)) setTimeout(() => nav({ to: "/role" }), 400);
+    if (next.every((d) => d)) verify(next.join(""));
+  };
+
+  const resend = async () => {
+    if (!email) return;
+    const { error } = await supabase.auth.signInWithOtp({ email });
+    if (error) return toast.error(error.message);
+    toast.success("Code resent");
+    setTimer(30);
   };
 
   return (
@@ -39,9 +73,12 @@ function OTP() {
           <ArrowLeft className="w-4 h-4" />
         </button>
 
-        <h1 className="font-display font-bold text-3xl">Verify number</h1>
+        <h1 className="font-display font-bold text-3xl">Verify email</h1>
         <p className="text-text-secondary mt-2 mb-10">
-          Code sent to <span className="text-text-primary font-mono">+91 98765 43210</span>
+          Code sent to{" "}
+          <span className="text-text-primary font-mono break-all">
+            {email || "your inbox"}
+          </span>
         </p>
 
         <div className="flex gap-3 justify-between mb-8">
@@ -66,11 +103,9 @@ function OTP() {
 
         <div className="text-center text-sm text-text-secondary mb-8">
           {timer > 0 ? (
-            <>
-              Resend in <span className="font-mono text-text-primary">{timer}s</span>
-            </>
+            <>Resend in <span className="font-mono text-text-primary">{timer}s</span></>
           ) : (
-            <button onClick={() => setTimer(30)} className="text-violet-light font-semibold">
+            <button onClick={resend} className="text-violet-light font-semibold">
               Resend code
             </button>
           )}
@@ -79,11 +114,11 @@ function OTP() {
         <RippleButton
           size="lg"
           block
-          disabled={!digits.every((d) => d)}
-          onClick={() => nav({ to: "/role" })}
+          disabled={!digits.every((d) => d) || verifying}
+          onClick={() => verify(digits.join(""))}
           className="mt-auto"
         >
-          Verify
+          {verifying ? "Verifying…" : "Verify"}
         </RippleButton>
       </div>
     </PhoneFrame>
