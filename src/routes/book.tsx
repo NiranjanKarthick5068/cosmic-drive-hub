@@ -5,33 +5,54 @@ import { AppShell } from "@/components/dl/AppShell";
 import { fadeUp, stagger } from "@/components/dl/PageTransition";
 import { RippleButton } from "@/components/dl/RippleButton";
 import { CountUp } from "@/components/dl/CountUp";
-import { MapPin, Navigation, Calendar, Sparkles, Car } from "lucide-react";
+import { Navigation, Calendar, Sparkles, Car } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { useMutation } from "@tanstack/react-query";
+import { predictFare } from "@/lib/fare.functions";
+import { createRide } from "@/lib/rides.functions";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/book")({ component: Book });
 
-const cars = ["Hatchback", "Sedan", "SUV"];
+const cars = ["Hatchback", "Sedan", "SUV"] as const;
+type CarType = (typeof cars)[number];
 
 function Book() {
   const nav = useNavigate();
   const [pickup, setPickup] = useState("Connaught Place, New Delhi");
   const [drop, setDrop] = useState("");
-  const [car, setCar] = useState("Sedan");
-  const [when, setWhen] = useState("now");
-  const [fare, setFare] = useState<null | {
-    base: number;
-    distance: number;
-    surge: number;
-    total: number;
-  }>(null);
-  const [loading, setLoading] = useState(false);
+  const [car, setCar] = useState<CarType>("Sedan");
+  const [when, setWhen] = useState<"now" | "later">("now");
 
-  const predict = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setFare({ base: 80, distance: 320, surge: 45, total: 445 });
-      setLoading(false);
-    }, 900);
-  };
+  const predict = useServerFn(predictFare);
+  const create = useServerFn(createRide);
+
+  const fareM = useMutation({
+    mutationFn: (input: { pickup: string; drop: string; carType: CarType; when: "now" | "later" }) =>
+      predict({ data: input }),
+    onSuccess: (res) => {
+      if (!res.ok) toast.error(res.error);
+    },
+    onError: () => toast.error("Network error, try again"),
+  });
+
+  const bookM = useMutation({
+    mutationFn: async () => {
+      if (!fareM.data?.ok) throw new Error("No fare");
+      await create({
+        data: {
+          pickup, drop, carType: car,
+          fareEstimate: fareM.data.fare.total,
+          reasoning: fareM.data.fare.reasoning,
+        },
+      });
+    },
+    onSuccess: () => nav({ to: "/searching" }),
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : "Could not book — please sign in"),
+  });
+
+  const fare = fareM.data?.ok ? fareM.data.fare : null;
 
   return (
     <AppShell>
@@ -45,7 +66,6 @@ function Book() {
           Book a <span className="text-gradient-violet">driver</span>
         </motion.h1>
 
-        {/* Pickup + drop */}
         <motion.div variants={fadeUp} className="p-4 rounded-2xl bg-surface ring-1 ring-border space-y-3">
           <div className="flex items-center gap-3">
             <div className="flex flex-col items-center pt-1">
@@ -71,11 +91,8 @@ function Book() {
           </div>
         </motion.div>
 
-        {/* Car type */}
         <motion.div variants={fadeUp}>
-          <p className="text-xs uppercase tracking-wider text-text-secondary mb-2">
-            Car type
-          </p>
+          <p className="text-xs uppercase tracking-wider text-text-secondary mb-2">Car type</p>
           <div className="flex gap-2">
             {cars.map((c) => (
               <button
@@ -93,15 +110,12 @@ function Book() {
           </div>
         </motion.div>
 
-        {/* When */}
         <motion.div variants={fadeUp}>
-          <p className="text-xs uppercase tracking-wider text-text-secondary mb-2">
-            When
-          </p>
+          <p className="text-xs uppercase tracking-wider text-text-secondary mb-2">When</p>
           <div className="flex gap-2">
             {[
-              { id: "now", label: "Now", icon: Navigation },
-              { id: "later", label: "Schedule", icon: Calendar },
+              { id: "now" as const, label: "Now", icon: Navigation },
+              { id: "later" as const, label: "Schedule", icon: Calendar },
             ].map((o) => (
               <button
                 key={o.id}
@@ -118,23 +132,35 @@ function Book() {
           </div>
         </motion.div>
 
-        {/* Predict button */}
         <motion.div variants={fadeUp}>
           <RippleButton
             size="lg"
             block
             variant="primary"
-            onClick={predict}
-            disabled={!drop || loading}
+            onClick={() => fareM.mutate({ pickup, drop, carType: car, when })}
+            disabled={!drop || fareM.isPending}
           >
             <Sparkles className="w-4 h-4" />
-            {loading ? "AI thinking…" : "Predict fare with AI"}
+            {fareM.isPending ? "AI thinking…" : "Predict fare with AI"}
           </RippleButton>
         </motion.div>
 
-        {/* Fare card */}
         <AnimatePresence>
-          {fare && (
+          {fareM.isPending && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="p-5 rounded-3xl bg-surface/60 ring-1 ring-border space-y-3 animate-pulse"
+            >
+              <div className="h-3 w-24 bg-border rounded" />
+              <div className="h-12 w-40 bg-border rounded" />
+              <div className="h-3 w-full bg-border rounded" />
+              <div className="h-3 w-3/4 bg-border rounded" />
+            </motion.div>
+          )}
+
+          {fare && !fareM.isPending && (
             <motion.div
               initial={{ opacity: 0, y: 30, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -147,7 +173,7 @@ function Book() {
                   Estimated fare
                 </span>
                 <span className="px-2 py-0.5 rounded-md bg-lime/15 text-lime text-[10px] font-bold uppercase tracking-wider">
-                  AI predicted · 94% conf
+                  AI · {Math.round(fare.confidence)}% conf
                 </span>
               </div>
               <p className="font-display font-bold text-5xl my-2 tabular-nums">
@@ -156,29 +182,26 @@ function Book() {
               <div className="space-y-1.5 mt-4 text-sm">
                 {[
                   ["Base fare", fare.base],
-                  ["Distance · 8.2 km", fare.distance],
+                  [`Distance · ${fare.distanceKm.toFixed(1)} km`, fare.distanceCost],
                   ["Time of day surge", fare.surge],
-                ].map(([k, v], idx) => (
-                  <motion.div
-                    key={k as string}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.15 + idx * 0.08 }}
-                    className="flex justify-between text-text-secondary"
-                  >
+                ].map(([k, v]) => (
+                  <div key={k as string} className="flex justify-between text-text-secondary">
                     <span>{k}</span>
                     <span className="font-mono">₹{v}</span>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
+              <p className="mt-3 text-xs text-text-secondary italic">{fare.reasoning}</p>
               <RippleButton
                 variant="lime"
                 size="lg"
                 block
                 className="mt-5"
-                onClick={() => nav({ to: "/searching" })}
+                onClick={() => bookM.mutate()}
+                disabled={bookM.isPending}
               >
-                <Car className="w-4 h-4" /> Find driver
+                <Car className="w-4 h-4" />
+                {bookM.isPending ? "Booking…" : "Find driver"}
               </RippleButton>
             </motion.div>
           )}
