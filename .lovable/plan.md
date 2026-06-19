@@ -1,52 +1,63 @@
-# Phase 2 — DriverLink Pro Backend & Real Integrations
+# DriverLink Pro — Production Plan
 
-Defaults I'm picking (you skipped both questions):
-- **Backend:** Enable Lovable Cloud (required for real auth + server-side Gemini + Realtime; no card, no external accounts).
-- **OTP delivery:** Email OTP (free, instant). Phone number stays as a profile field; SMS OTP can be swapped in later by adding Twilio.
+This is a 4–6 turn build. I'll ship it in phases so each is reviewable and your credits aren't blown on a single mega-edit. After you approve, I start Phase 1 immediately.
 
-## 1. Enable Lovable Cloud
-Provisions Postgres, Auth, Realtime, server fns, and `LOVABLE_API_KEY` for the AI Gateway.
+## Decisions I'm making for you (override any in your reply)
 
-## 2. Database schema (migration)
-- `profiles` (id → auth.users, name, phone, photo, created_at) + auto-create trigger on signup.
-- `user_roles` (separate table, enum `app_role` = owner | driver) + `has_role()` security-definer fn. Role chosen on `/role` writes a row here.
-- `rides` (id, owner_id, driver_id, pickup, drop, car_type, fare_estimate, status, created_at, started_at, completed_at).
-- `driver_locations` (driver_id PK, lat, lng, heading, online, updated_at) — broadcast via Realtime.
-- RLS + GRANTs on all tables, scoped per role.
+- **Maps:** Keep **Leaflet + free OSRM** for routing/ETA. Google Maps requires a billing-enabled key you'd have to add; OSRM is free, no key, and looks ~identical. If you want Google Maps, say so — I'll wire the connector instead.
+- **Admin:** Add an `admin` role. After Phase 3 I'll give you the SQL to grant yourself admin.
+- **Backend:** Lovable Cloud (already enabled). No Firebase.
+- **AI matching/ETA/fare:** Gemini via Lovable AI Gateway (already wired).
 
-## 3. Real auth (Email OTP + Google)
-- `/login` → `supabase.auth.signInWithOtp({ email })` → `/otp` enters 6-digit code → `verifyOtp`.
-- Google button → `signInWithOAuth({ provider: 'google' })`.
-- `_authenticated` layout gate using integration-managed pattern; redirects unauthenticated users to `/login`.
-- `/role` writes selected role to `user_roles`; subsequent visits route owners → `/home`, drivers → `/driver-home`.
-- Profile, logout, session listener in root.
+## Phase 1 — Schema + remove all mocks
+- Migration: add `pickup_lat/lng`, `drop_lat/lng` on `rides`; add `vehicle`, `plate`, `rating` on `profiles`; add `app_role` value `admin`; add `sos_incidents` table; add `share_tokens` for trip-share links; enable Realtime on `rides`, `driver_locations`, `sos_incidents`.
+- Delete `src/lib/mock.ts`. Purge every import — bookings, notifications, wallet, driver-found, incoming-ride, ride-complete, tracking, profile screens become DB-driven or show empty states.
+- Skeleton + empty-state components everywhere.
 
-## 4. Gemini fare prediction (real)
-- Server fn `predictFare` in `src/lib/fare.functions.ts` using AI SDK + Lovable Gateway helper (`google/gemini-3-flash-preview`), structured `Output.object` schema → `{ base, distance, surge, total, confidence, reasoning }`.
-- `/book` calls it via `useServerFn` + `useMutation`; surfaces 429/402 as toast.
+## Phase 2 — Real ride lifecycle
+- Server fns: `createRide`, `acceptRide`, `updateRideStatus(arriving|started|completed)`, `cancelRide`.
+- Status flow: `searching → accepted → arriving → started → completed | cancelled`.
+- `/book` geocodes pickup/drop via OSRM Nominatim (free), calls Gemini for fare, inserts ride.
+- `/searching` subscribes to its ride row; on `accepted` → `/driver-found` → `/tracking`.
+- Driver: `/driver-home` subscribes to `rides` where status=`searching` near them; incoming-ride modal with accept/reject; on accept transitions through statuses.
 
-## 5. Leaflet map + live driver tracking
-- Add `leaflet` + `react-leaflet`; dark CartoDB tiles to match theme.
-- `/tracking` replaces the faux SVG map with a real Leaflet map showing pickup, drop, driver marker, and animated polyline.
-- Driver side (`/driver-home` when online): `navigator.geolocation.watchPosition` → server fn upserts `driver_locations` and broadcasts on a Realtime channel `ride:{rideId}`.
-- Owner side: subscribes to that channel, animates marker between updates, recomputes ETA. Falls back to mock simulation if no driver is publishing (so the demo still works).
+## Phase 3 — Live tracking + routing
+- OSRM route + ETA on `/tracking`; recompute every 15s or on driver move >50m.
+- Driver GPS broadcast every 3s (already wired, will tune).
+- Smooth marker tween (requestAnimationFrame between updates).
+- ETA countdown derived from OSRM duration, not fake timer.
 
-## 6. Skeletons, error states, offline handling
-- `Skeleton` variants for home/bookings/wallet/notifications/tracking cards (using existing shadcn `skeleton`).
-- Per-route `errorComponent` with retry → `router.invalidate()`; empty states for bookings/notifications/wallet.
-- Global offline banner via `navigator.onLine` + `online`/`offline` listeners in `AppShell`; queued ride actions show "Reconnecting…" toast.
-- Toast on auth/fare/tracking failures using existing `sonner`.
+## Phase 4 — Safety + Admin + AI matching
+- SOS button → inserts `sos_incidents` row + share token; passenger contact gets a public `/trip/:token` page with live map (no auth, read-only via narrow anon policy on a `public_trip_view`).
+- AI matching server fn: pulls online drivers within radius (haversine), ranks by distance + rating via Gemini, returns top 3; ride broadcast targets them in order.
+- `/admin` route (admin-only): counts (online drivers, active rides, revenue today), live map of all online drivers via Realtime, recent rides table.
 
-## 7. Quiet fixes
-- Hydration mismatch on `StatusBar` clock (server "05:47" vs client "11:18") — render time only after mount.
+## Out of scope (ask if you want them)
+- Payments / payouts (no Stripe).
+- SMS / push notifications (no Twilio).
+- Driver KYC document upload.
+- Multi-stop rides, scheduled rides.
+- Mobile-app packaging (stays web).
 
 ## Technical notes
-- All AI + DB writes go through `createServerFn` with `requireSupabaseAuth`; `attachSupabaseAuth` already wired in `src/start.ts` (verify).
-- Realtime channel pattern: `supabase.channel('ride:'+rideId).on('broadcast', { event: 'loc' }, …)`.
-- Leaflet CSS imported in `styles.css`; map container lazy-mounted (no SSR — Leaflet touches `window`).
-- Mock data kept as fallback so screens still render before any rides exist.
 
-## Out of scope (later phase)
-ML trust score, subscription payments, SMS OTP, driver KYC uploads, scheduled rides.
+```text
+DB additions
+├── rides: pickup_lat, pickup_lng, drop_lat, drop_lng, share_token, distance_km, duration_min
+├── profiles: vehicle, plate, rating, total_trips
+├── app_role enum: + 'admin'
+├── sos_incidents: ride_id, user_id, lat, lng, created_at
+└── public_trip_view: SELECT id, status, driver lat/lng, pickup, drop WHERE share_token = ?
 
-Approve to start with step 1 (enable Cloud + migration).
+Realtime channels
+├── rides (postgres_changes filtered by owner_id / driver_id)
+├── driver_locations (broadcast for online drivers)
+└── sos_incidents (admin channel)
+
+Free services used
+├── OSRM router.project-osrm.org — routing + distance + duration
+├── Nominatim openstreetmap.org — geocoding (rate-limited, fine for dev)
+└── CartoDB dark tiles — already used
+```
+
+Reply **"go"** to start Phase 1, or tell me which phase/decision to change.
