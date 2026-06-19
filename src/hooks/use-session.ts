@@ -19,3 +19,40 @@ export function useSession() {
 
   return { session, user: session?.user ?? null, loading };
 }
+
+export type ProfileRow = {
+  id: string;
+  name: string | null;
+  phone: string | null;
+  photo: string | null;
+  vehicle: string | null;
+  plate: string | null;
+  rating: number;
+  total_trips: number;
+};
+
+export function useProfile() {
+  const { user, loading } = useSession();
+  const [profile, setProfile] = useState<ProfileRow | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setProfile(null);
+      return;
+    }
+    let cancel = false;
+    supabase
+      .from("profiles")
+      .select("id, name, phone, photo, vehicle, plate, rating, total_trips")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancel) setProfile(data ?? null);
+      });
+    return () => {
+      cancel = true;
+    };
+  }, [user?.id]);
+
+  return { profile, user, loading };
+}
