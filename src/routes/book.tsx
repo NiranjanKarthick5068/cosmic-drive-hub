@@ -1,15 +1,16 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/dl/AppShell";
 import { fadeUp, stagger } from "@/components/dl/PageTransition";
 import { RippleButton } from "@/components/dl/RippleButton";
 import { CountUp } from "@/components/dl/CountUp";
 import { Navigation, Calendar, Sparkles, Car } from "lucide-react";
-import { useServerFn } from "@tanstack/react-start";
-import { useMutation } from "@tanstack/react-query";
 import { predictFare } from "@/lib/fare.functions";
 import { createRide } from "@/lib/rides.functions";
+import { setCurrentRideId } from "@/lib/current-ride";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/book")({ component: Book });
@@ -19,7 +20,7 @@ type CarType = (typeof cars)[number];
 
 function Book() {
   const nav = useNavigate();
-  const [pickup, setPickup] = useState("Connaught Place, New Delhi");
+  const [pickup, setPickup] = useState("");
   const [drop, setDrop] = useState("");
   const [car, setCar] = useState<CarType>("Sedan");
   const [when, setWhen] = useState<"now" | "later">("now");
@@ -39,15 +40,22 @@ function Book() {
   const bookM = useMutation({
     mutationFn: async () => {
       if (!fareM.data?.ok) throw new Error("No fare");
-      await create({
+      const r = await create({
         data: {
-          pickup, drop, carType: car,
+          pickup,
+          drop,
+          carType: car,
           fareEstimate: fareM.data.fare.total,
           reasoning: fareM.data.fare.reasoning,
+          distanceKm: fareM.data.fare.distanceKm,
         },
       });
+      return r;
     },
-    onSuccess: () => nav({ to: "/searching" }),
+    onSuccess: (r) => {
+      setCurrentRideId(r.rideId);
+      nav({ to: "/searching" });
+    },
     onError: (e) =>
       toast.error(e instanceof Error ? e.message : "Could not book — please sign in"),
   });
@@ -77,8 +85,8 @@ function Book() {
               <input
                 value={pickup}
                 onChange={(e) => setPickup(e.target.value)}
-                placeholder="Pickup"
-                className="w-full bg-transparent outline-none text-sm font-medium"
+                placeholder="Pickup location"
+                className="w-full bg-transparent outline-none text-sm font-medium placeholder:text-text-secondary"
               />
               <div className="h-px bg-border" />
               <input
@@ -138,7 +146,7 @@ function Book() {
             block
             variant="primary"
             onClick={() => fareM.mutate({ pickup, drop, carType: car, when })}
-            disabled={!drop || fareM.isPending}
+            disabled={!pickup || !drop || fareM.isPending}
           >
             <Sparkles className="w-4 h-4" />
             {fareM.isPending ? "AI thinking…" : "Predict fare with AI"}

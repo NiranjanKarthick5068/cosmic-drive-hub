@@ -1,123 +1,153 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { PhoneFrame, StatusBar } from "@/components/dl/PhoneFrame";
 import { RippleButton } from "@/components/dl/RippleButton";
 import { LiveMap, type LatLng } from "@/components/dl/LiveMap";
-import { mockDrivers } from "@/lib/mock";
+import { EmptyState } from "@/components/dl/EmptyState";
 import { supabase } from "@/integrations/supabase/client";
-import { Phone, ShieldAlert, AlertTriangle, X, Navigation } from "lucide-react";
+import { getRide, cancelRide, triggerSos } from "@/lib/rides.functions";
+import { getCurrentRideId, clearCurrentRideId } from "@/lib/current-ride";
+import { Phone, ShieldAlert, Navigation, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/tracking")({ component: Tracking });
 
-// Connaught Place → IGI T3 (demo coords)
-const PICKUP: LatLng = { lat: 28.6315, lng: 77.2167 };
-const DROP: LatLng = { lat: 28.5562, lng: 77.0999 };
-
-function lerp(a: number, b: number, t: number) {
-  return a + (b - a) * t;
-}
-
 function Tracking() {
   const nav = useNavigate();
-  const d = mockDrivers[0];
-  const [eta, setEta] = useState(d.etaMin * 60);
-  const [anomaly, setAnomaly] = useState(false);
-  const [driverPos, setDriverPos] = useState<LatLng>(PICKUP);
-  const [usingReal, setUsingReal] = useState(false);
+  const rideId = getCurrentRideId();
+  const get = useServerFn(getRide);
+  const cancel = useServerFn(cancelRide);
+  const sos = useServerFn(triggerSos);
 
-  // Realtime: subscribe to live driver_locations updates (any driver)
+  const q = useQuery({
+    queryKey: ["ride", rideId],
+    queryFn: () => get({ data: { rideId: rideId! } }),
+    enabled: !!rideId,
+    refetchInterval: 4_000,
+  });
+
+  const [driverPos, setDriverPos] = useState<LatLng | null>(null);
+
+  // subscribe to driver_locations for THIS driver
+  const driverId = q.data?.ride?.driver_id;
   useEffect(() => {
+    if (!driverId) return;
     const ch = supabase
-      .channel("driver_locations_live")
+      .channel(`drv:${driverId}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "driver_locations" },
+        {
+          event: "*",
+          schema: "public",
+          table: "driver_locations",
+          filter: `driver_id=eq.${driverId}`,
+        },
         (payload) => {
           const row = payload.new as { lat: number; lng: number } | null;
-          if (row?.lat && row?.lng) {
-            setUsingReal(true);
-            setDriverPos({ lat: row.lat, lng: row.lng });
-          }
+          if (row?.lat && row?.lng) setDriverPos({ lat: row.lat, lng: row.lng });
         },
       )
       .subscribe();
+    // also fetch initial location
+    supabase
+      .from("driver_locations")
+      .select("lat, lng")
+      .eq("driver_id", driverId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.lat && data?.lng) setDriverPos({ lat: data.lat, lng: data.lng });
+      });
     return () => {
       supabase.removeChannel(ch);
     };
-  }, []);
+  }, [driverId]);
 
-  // Fallback simulation when no real driver is broadcasting
+  // auto-navigate on completion
   useEffect(() => {
-    if (usingReal) return;
-    let progress = 0;
-    const i = setInterval(() => {
-      progress = Math.min(1, progress + 0.04);
-      setDriverPos({
-        lat: lerp(PICKUP.lat, DROP.lat, progress),
-        lng: lerp(PICKUP.lng, DROP.lng, progress),
-      });
-      setEta((e) => Math.max(0, e - 5));
-      if (progress >= 1) clearInterval(i);
-    }, 800);
-    return () => clearInterval(i);
-  }, [usingReal]);
-
-  useEffect(() => {
-    const a = setTimeout(() => setAnomaly(true), 5500);
-    return () => clearTimeout(a);
-  }, []);
-
-  useEffect(() => {
-    if (eta === 0) {
-      const t = setTimeout(() => nav({ to: "/ride-complete" }), 1000);
+    if (q.data?.ride?.status === "completed") {
+      const t = setTimeout(() => nav({ to: "/ride-complete" }), 800);
       return () => clearTimeout(t);
     }
-  }, [eta, nav]);
+  }, [q.data?.ride?.status, nav]);
 
-  const mm = Math.floor(eta / 60);
-  const ss = (eta % 60).toString().padStart(2, "0");
+  if (!rideId) {
+    return (
+      <PhoneFrame>
+        <StatusBar />
+        <div className="flex-1 flex items-center justify-center px-5">
+          <EmptyState
+            icon={AlertCircle}
+            title="No active ride"
+            body="Book a ride first."
+            action={<RippleButton onClick={() => nav({ to: "/book" })}>Book</RippleButton>}
+          />
+        </div>
+      </PhoneFrame>
+    );
+  }
+
+  const ride = q.data?.ride;
+  const driver = q.data?.driver;
+  const initial = (driver?.name?.[0] ?? "?").toUpperCase();
+
+  const pickup: LatLng | null =
+    ride?.pickup_lat && ride?.pickup_lng
+      ? { lat: ride.pickup_lat, lng: ride.pickup_lng }
+      : null;
+  const drop: LatLng | null =
+    ride?.drop_lat && ride?.drop_lng
+      ? { lat: ride.drop_lat, lng: ride.drop_lng }
+      : null;
+
+  const onCancel = async () => {
+    try {
+      await cancel({ data: { rideId } });
+      clearCurrentRideId();
+      nav({ to: "/home" });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not cancel");
+    }
+  };
+
+  const onSos = async () => {
+    if (!driverPos && !pickup) {
+      toast.error("No location yet");
+      return;
+    }
+    const loc = driverPos ?? pickup!;
+    try {
+      await sos({ data: { rideId, lat: loc.lat, lng: loc.lng } });
+      toast.success("Emergency alert sent");
+    } catch {
+      toast.error("Could not send alert");
+    }
+  };
 
   return (
     <PhoneFrame>
       <StatusBar />
       <div className="relative flex-1 flex flex-col overflow-hidden">
-        <LiveMap
-          pickup={PICKUP}
-          drop={DROP}
-          driver={driverPos}
-          className="absolute inset-0"
-        />
+        {pickup && drop ? (
+          <LiveMap pickup={pickup} drop={drop} driver={driverPos} className="absolute inset-0" />
+        ) : (
+          <div className="absolute inset-0 bg-surface" />
+        )}
 
-        {usingReal && (
+        {driverPos && (
           <div className="absolute top-16 left-5 z-30 px-2 py-1 rounded-md bg-lime/20 ring-1 ring-lime/40 text-[10px] font-bold uppercase tracking-wider text-lime">
             ● Live
           </div>
         )}
 
-        <button className="absolute top-16 right-5 z-30 w-12 h-12 rounded-full bg-danger text-white shadow-[var(--shadow-glow-danger)] flex items-center justify-center ring-2 ring-danger/40">
+        <button
+          onClick={onSos}
+          className="absolute top-16 right-5 z-30 w-12 h-12 rounded-full bg-danger text-white shadow-[var(--shadow-glow-danger)] flex items-center justify-center ring-2 ring-danger/40"
+        >
           <ShieldAlert className="w-5 h-5" />
         </button>
-
-        <AnimatePresence>
-          {anomaly && (
-            <motion.div
-              initial={{ y: -100, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -100 }}
-              className="absolute top-28 left-5 right-20 z-30 p-3 rounded-2xl bg-danger/20 ring-1 ring-danger/50 backdrop-blur-md flex items-center gap-2"
-            >
-              <AlertTriangle className="w-5 h-5 text-danger shrink-0" />
-              <div className="flex-1">
-                <p className="text-xs font-bold text-danger">Route deviation</p>
-                <p className="text-[11px] text-text-primary">800m off optimal · 2m ago</p>
-              </div>
-              <button onClick={() => setAnomaly(false)}>
-                <X className="w-4 h-4 text-danger" />
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         <motion.div
           initial={{ y: 200 }}
@@ -128,42 +158,53 @@ function Tracking() {
           <div className="w-12 h-1.5 rounded-full bg-border mx-auto mb-4" />
           <div className="flex items-center gap-3">
             <div className="w-14 h-14 rounded-full bg-gradient-to-br from-violet to-violet-light flex items-center justify-center font-display font-bold text-lg ring-2 ring-violet/40">
-              {d.photo}
+              {initial}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold">{d.name}</p>
+              <p className="font-semibold">{driver?.name ?? "Driver"}</p>
               <p className="text-xs text-text-secondary font-mono">
-                {d.vehicle} · {d.plate}
+                {driver?.vehicle ?? "—"} · {driver?.plate ?? "—"}
               </p>
             </div>
-            <button className="w-11 h-11 rounded-full bg-lime text-base flex items-center justify-center">
+            <a
+              href={driver?.id ? `tel:${driver.id}` : "#"}
+              className="w-11 h-11 rounded-full bg-lime text-base flex items-center justify-center"
+            >
               <Phone className="w-4 h-4" />
-            </button>
+            </a>
           </div>
 
           <div className="mt-5 grid grid-cols-2 gap-3">
             <div className="p-3 rounded-2xl bg-surface ring-1 ring-border">
               <p className="text-[10px] uppercase tracking-wider text-text-secondary">
-                Arriving in
+                Fare
               </p>
               <p className="font-display font-bold text-2xl tabular-nums mt-1">
-                {mm}:{ss}
+                ₹{ride?.fare_estimate ?? 0}
               </p>
             </div>
             <div className="p-3 rounded-2xl bg-surface ring-1 ring-border">
               <p className="text-[10px] uppercase tracking-wider text-text-secondary">
                 Status
               </p>
-              <p className="font-display font-bold text-base mt-1 flex items-center gap-1.5">
+              <p className="font-display font-bold text-base mt-1 flex items-center gap-1.5 capitalize">
                 <Navigation className="w-4 h-4 text-violet-light" />
-                On the way
+                {ride?.status ?? "—"}
               </p>
             </div>
           </div>
 
-          <RippleButton variant="outline" size="md" block className="mt-4">
-            Cancel ride · ₹50 fee
-          </RippleButton>
+          {ride?.status !== "completed" && (
+            <RippleButton
+              variant="outline"
+              size="md"
+              block
+              className="mt-4"
+              onClick={onCancel}
+            >
+              Cancel ride
+            </RippleButton>
+          )}
         </motion.div>
       </div>
     </PhoneFrame>

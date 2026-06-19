@@ -196,12 +196,14 @@ export const updateRideStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => StatusInput.parse(i))
   .handler(async ({ data, context }) => {
-    const patch: Record<string, unknown> = { status: data.status };
-    if (data.status === "started") patch.started_at = new Date().toISOString();
-    if (data.status === "completed") patch.completed_at = new Date().toISOString();
+    const now = new Date().toISOString();
     const { error } = await context.supabase
       .from("rides")
-      .update(patch)
+      .update({
+        status: data.status,
+        started_at: data.status === "started" ? now : undefined,
+        completed_at: data.status === "completed" ? now : undefined,
+      })
       .eq("id", data.rideId)
       .eq("driver_id", context.userId);
     if (error) throw new Error(error.message);

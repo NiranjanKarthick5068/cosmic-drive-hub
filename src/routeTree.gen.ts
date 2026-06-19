@@ -20,7 +20,6 @@ import { Route as OtpRouteImport } from './routes/otp'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as IncomingRideRouteImport } from './routes/incoming-ride'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as DriverHomeRouteImport } from './routes/driver-home'
 import { Route as DriverFoundRouteImport } from './routes/driver-found'
@@ -83,11 +82,6 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IncomingRideRoute = IncomingRideRouteImport.update({
-  id: '/incoming-ride',
-  path: '/incoming-ride',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const HomeRoute = HomeRouteImport.update({
   id: '/home',
   path: '/home',
@@ -126,7 +120,6 @@ export interface FileRoutesByFullPath {
   '/driver-found': typeof DriverFoundRoute
   '/driver-home': typeof DriverHomeRoute
   '/home': typeof HomeRoute
-  '/incoming-ride': typeof IncomingRideRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
@@ -146,7 +139,6 @@ export interface FileRoutesByTo {
   '/driver-found': typeof DriverFoundRoute
   '/driver-home': typeof DriverHomeRoute
   '/home': typeof HomeRoute
-  '/incoming-ride': typeof IncomingRideRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
@@ -167,7 +159,6 @@ export interface FileRoutesById {
   '/driver-found': typeof DriverFoundRoute
   '/driver-home': typeof DriverHomeRoute
   '/home': typeof HomeRoute
-  '/incoming-ride': typeof IncomingRideRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
@@ -189,7 +180,6 @@ export interface FileRouteTypes {
     | '/driver-found'
     | '/driver-home'
     | '/home'
-    | '/incoming-ride'
     | '/login'
     | '/notifications'
     | '/onboarding'
@@ -209,7 +199,6 @@ export interface FileRouteTypes {
     | '/driver-found'
     | '/driver-home'
     | '/home'
-    | '/incoming-ride'
     | '/login'
     | '/notifications'
     | '/onboarding'
@@ -229,7 +218,6 @@ export interface FileRouteTypes {
     | '/driver-found'
     | '/driver-home'
     | '/home'
-    | '/incoming-ride'
     | '/login'
     | '/notifications'
     | '/onboarding'
@@ -250,7 +238,6 @@ export interface RootRouteChildren {
   DriverFoundRoute: typeof DriverFoundRoute
   DriverHomeRoute: typeof DriverHomeRoute
   HomeRoute: typeof HomeRoute
-  IncomingRideRoute: typeof IncomingRideRoute
   LoginRoute: typeof LoginRoute
   NotificationsRoute: typeof NotificationsRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -343,13 +330,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/incoming-ride': {
-      id: '/incoming-ride'
-      path: '/incoming-ride'
-      fullPath: '/incoming-ride'
-      preLoaderRoute: typeof IncomingRideRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/home': {
       id: '/home'
       path: '/home'
@@ -402,7 +382,6 @@ const rootRouteChildren: RootRouteChildren = {
   DriverFoundRoute: DriverFoundRoute,
   DriverHomeRoute: DriverHomeRoute,
   HomeRoute: HomeRoute,
-  IncomingRideRoute: IncomingRideRoute,
   LoginRoute: LoginRoute,
   NotificationsRoute: NotificationsRoute,
   OnboardingRoute: OnboardingRoute,
@@ -418,3 +397,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
