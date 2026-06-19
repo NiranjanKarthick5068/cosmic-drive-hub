@@ -129,10 +129,20 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((e) => {
+      if (e === "SIGNED_IN" || e === "SIGNED_OUT" || e === "USER_UPDATED") {
+        queryClient.invalidateQueries();
+      }
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [queryClient]);
+
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+      <OfflineBanner />
       <Outlet />
+      <Toaster theme="dark" position="top-center" richColors />
     </QueryClientProvider>
   );
 }

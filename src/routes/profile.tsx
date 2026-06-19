@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { AppShell } from "@/components/dl/AppShell";
 import { fadeUp, stagger } from "@/components/dl/PageTransition";
 import { RippleButton } from "@/components/dl/RippleButton";
+import { useProfile } from "@/hooks/use-session";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Bell,
   Crown,
@@ -22,10 +24,19 @@ const rows = [
   { Icon: ShieldCheck, label: "Safety & emergency", to: "/profile", color: "text-lime" },
   { Icon: Headphones, label: "Help & support", to: "/profile", color: "text-violet-light" },
   { Icon: Settings, label: "Settings", to: "/profile", color: "text-text-secondary" },
-];
+] as const;
 
 function Profile() {
   const nav = useNavigate();
+  const { profile, user } = useProfile();
+  const name = profile?.name ?? user?.email?.split("@")[0] ?? "—";
+  const initial = (name[0] || "?").toUpperCase();
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    nav({ to: "/login" });
+  };
+
   return (
     <AppShell>
       <motion.div
@@ -43,20 +54,29 @@ function Profile() {
           className="p-5 rounded-3xl bg-gradient-to-br from-surface to-base ring-1 ring-border flex items-center gap-4"
         >
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet to-violet-light flex items-center justify-center font-display font-bold text-2xl ring-2 ring-violet/40">
-            A
+            {initial}
           </div>
-          <div className="flex-1">
-            <p className="font-display font-bold text-lg">Arjun Mehta</p>
-            <p className="text-xs text-text-secondary font-mono">+91 98765 43210</p>
+          <div className="flex-1 min-w-0">
+            <p className="font-display font-bold text-lg truncate">{name}</p>
+            <p className="text-xs text-text-secondary font-mono truncate">
+              {profile?.phone ?? user?.email ?? "—"}
+            </p>
             <div className="flex items-center gap-1 mt-1">
               <Star className="w-3 h-3 text-warning fill-warning" />
-              <span className="text-xs font-mono">4.9</span>
-              <span className="text-xs text-text-secondary">· 24 trips</span>
+              <span className="text-xs font-mono">
+                {(profile?.rating ?? 5).toFixed(1)}
+              </span>
+              <span className="text-xs text-text-secondary">
+                · {profile?.total_trips ?? 0} trips
+              </span>
             </div>
           </div>
         </motion.div>
 
-        <motion.div variants={fadeUp} className="rounded-2xl bg-surface ring-1 ring-border overflow-hidden">
+        <motion.div
+          variants={fadeUp}
+          className="rounded-2xl bg-surface ring-1 ring-border overflow-hidden"
+        >
           {rows.map((r, i) => (
             <button
               key={r.label}
@@ -73,20 +93,12 @@ function Profile() {
         </motion.div>
 
         <motion.div variants={fadeUp}>
-          <RippleButton
-            variant="ghost"
-            size="lg"
-            block
-            onClick={() => nav({ to: "/" })}
-          >
+          <RippleButton variant="ghost" size="lg" block onClick={signOut}>
             <LogOut className="w-4 h-4" /> Sign out
           </RippleButton>
         </motion.div>
 
-        <motion.p
-          variants={fadeUp}
-          className="text-center text-xs text-text-secondary"
-        >
+        <motion.p variants={fadeUp} className="text-center text-xs text-text-secondary">
           DriverLink Pro · v1.0.0
         </motion.p>
       </motion.div>

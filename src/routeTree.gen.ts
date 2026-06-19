@@ -20,12 +20,12 @@ import { Route as OtpRouteImport } from './routes/otp'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as IncomingRideRouteImport } from './routes/incoming-ride'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as DriverHomeRouteImport } from './routes/driver-home'
 import { Route as DriverFoundRouteImport } from './routes/driver-found'
 import { Route as BookingsRouteImport } from './routes/bookings'
 import { Route as BookRouteImport } from './routes/book'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 
 const WalletRoute = WalletRouteImport.update({
@@ -83,11 +83,6 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IncomingRideRoute = IncomingRideRouteImport.update({
-  id: '/incoming-ride',
-  path: '/incoming-ride',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const HomeRoute = HomeRouteImport.update({
   id: '/home',
   path: '/home',
@@ -113,6 +108,11 @@ const BookRoute = BookRouteImport.update({
   path: '/book',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -121,12 +121,12 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/book': typeof BookRoute
   '/bookings': typeof BookingsRoute
   '/driver-found': typeof DriverFoundRoute
   '/driver-home': typeof DriverHomeRoute
   '/home': typeof HomeRoute
-  '/incoming-ride': typeof IncomingRideRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
@@ -141,12 +141,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/book': typeof BookRoute
   '/bookings': typeof BookingsRoute
   '/driver-found': typeof DriverFoundRoute
   '/driver-home': typeof DriverHomeRoute
   '/home': typeof HomeRoute
-  '/incoming-ride': typeof IncomingRideRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
@@ -162,12 +162,12 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/book': typeof BookRoute
   '/bookings': typeof BookingsRoute
   '/driver-found': typeof DriverFoundRoute
   '/driver-home': typeof DriverHomeRoute
   '/home': typeof HomeRoute
-  '/incoming-ride': typeof IncomingRideRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
@@ -184,12 +184,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/book'
     | '/bookings'
     | '/driver-found'
     | '/driver-home'
     | '/home'
-    | '/incoming-ride'
     | '/login'
     | '/notifications'
     | '/onboarding'
@@ -204,12 +204,12 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/book'
     | '/bookings'
     | '/driver-found'
     | '/driver-home'
     | '/home'
-    | '/incoming-ride'
     | '/login'
     | '/notifications'
     | '/onboarding'
@@ -224,12 +224,12 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/book'
     | '/bookings'
     | '/driver-found'
     | '/driver-home'
     | '/home'
-    | '/incoming-ride'
     | '/login'
     | '/notifications'
     | '/onboarding'
@@ -245,12 +245,12 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   BookRoute: typeof BookRoute
   BookingsRoute: typeof BookingsRoute
   DriverFoundRoute: typeof DriverFoundRoute
   DriverHomeRoute: typeof DriverHomeRoute
   HomeRoute: typeof HomeRoute
-  IncomingRideRoute: typeof IncomingRideRoute
   LoginRoute: typeof LoginRoute
   NotificationsRoute: typeof NotificationsRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -343,13 +343,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/incoming-ride': {
-      id: '/incoming-ride'
-      path: '/incoming-ride'
-      fullPath: '/incoming-ride'
-      preLoaderRoute: typeof IncomingRideRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/home': {
       id: '/home'
       path: '/home'
@@ -385,6 +378,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -397,12 +397,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   BookRoute: BookRoute,
   BookingsRoute: BookingsRoute,
   DriverFoundRoute: DriverFoundRoute,
   DriverHomeRoute: DriverHomeRoute,
   HomeRoute: HomeRoute,
-  IncomingRideRoute: IncomingRideRoute,
   LoginRoute: LoginRoute,
   NotificationsRoute: NotificationsRoute,
   OnboardingRoute: OnboardingRoute,
@@ -418,13 +418,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

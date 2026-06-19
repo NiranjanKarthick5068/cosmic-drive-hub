@@ -1,26 +1,65 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/dl/AppShell";
 import { fadeUp, stagger } from "@/components/dl/PageTransition";
 import { RippleButton } from "@/components/dl/RippleButton";
 import { CountUp } from "@/components/dl/CountUp";
-import { TrustGauge } from "@/components/dl/TrustGauge";
-import { Power, Zap, TrendingUp, IndianRupee, Clock } from "lucide-react";
-import { useServerFn } from "@tanstack/react-start";
-import { upsertDriverLocation } from "@/lib/rides.functions";
+import { EmptyState, SkeletonRow } from "@/components/dl/EmptyState";
+import {
+  upsertDriverLocation,
+  goOffline,
+  listOpenRides,
+  getDriverEarnings,
+  acceptRide,
+} from "@/lib/rides.functions";
+import { setCurrentRideId } from "@/lib/current-ride";
+import { supabase } from "@/integrations/supabase/client";
+import { Power, Zap, TrendingUp, MapPin, IndianRupee } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/driver-home")({ component: DriverHome });
-
-const bars = [40, 65, 30, 80, 55, 90, 72];
-const days = ["M", "T", "W", "T", "F", "S", "S"];
 
 function DriverHome() {
   const nav = useNavigate();
   const [online, setOnline] = useState(false);
   const upsert = useServerFn(upsertDriverLocation);
+  const offline = useServerFn(goOffline);
+  const list = useServerFn(listOpenRides);
+  const earn = useServerFn(getDriverEarnings);
+  const accept = useServerFn(acceptRide);
   const watchRef = useRef<number | null>(null);
+
+  const earnings = useQuery({
+    queryKey: ["driver-earnings"],
+    queryFn: () => earn(),
+    refetchInterval: 15_000,
+  });
+
+  const open = useQuery({
+    queryKey: ["open-rides"],
+    queryFn: () => list(),
+    enabled: online,
+    refetchInterval: 4_000,
+  });
+
+  // realtime: refresh open rides on inserts
+  useEffect(() => {
+    if (!online) return;
+    const ch = supabase
+      .channel("open-rides-stream")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "rides" },
+        () => open.refetch(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [online, open]);
 
   useEffect(() => {
     if (!online) {
@@ -28,10 +67,12 @@ function DriverHome() {
         navigator.geolocation.clearWatch(watchRef.current);
         watchRef.current = null;
       }
+      offline().catch(() => {});
       return;
     }
     if (!("geolocation" in navigator)) {
       toast.error("Geolocation unavailable");
+      setOnline(false);
       return;
     }
     watchRef.current = navigator.geolocation.watchPosition(
@@ -49,13 +90,24 @@ function DriverHome() {
         toast.error(err.message);
         setOnline(false);
       },
-      { enableHighAccuracy: true, maximumAge: 5000 },
+      { enableHighAccuracy: true, maximumAge: 3000 },
     );
     return () => {
       if (watchRef.current != null)
         navigator.geolocation.clearWatch(watchRef.current);
     };
-  }, [online, upsert]);
+  }, [online, upsert, offline]);
+
+  const pickRide = async (rideId: string) => {
+    try {
+      await accept({ data: { rideId } });
+      setCurrentRideId(rideId);
+      nav({ to: "/tracking" });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not accept");
+      open.refetch();
+    }
+  };
 
   return (
     <AppShell hideNav>
@@ -68,9 +120,12 @@ function DriverHome() {
         <motion.div variants={fadeUp} className="flex items-center justify-between">
           <div>
             <p className="text-text-secondary text-sm">Driver mode</p>
-            <h1 className="font-display font-bold text-2xl">Hey, driver</h1>
+            <h1 className="font-display font-bold text-2xl">Hello, driver</h1>
           </div>
-          <button onClick={() => nav({ to: "/home" })} className="text-xs text-violet-light font-semibold">
+          <button
+            onClick={() => nav({ to: "/home" })}
+            className="text-xs text-violet-light font-semibold"
+          >
             Switch
           </button>
         </motion.div>
@@ -101,77 +156,85 @@ function DriverHome() {
           </button>
           <p className="text-xs text-text-secondary mt-3">
             {online
-              ? "Broadcasting your live location to nearby riders"
-              : "Tap to start receiving ride requests"}
+              ? "Sharing your live location · receiving ride requests"
+              : "Tap to start receiving rides"}
           </p>
         </motion.div>
 
-        <motion.div variants={fadeUp} className="grid grid-cols-2 gap-3">
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-lime/15 to-transparent ring-1 ring-lime/30">
-            <Zap className="w-4 h-4 text-lime mb-2" />
-            <p className="text-xs text-text-secondary">Today</p>
-            <p className="font-display font-bold text-2xl tabular-nums">
-              ₹<CountUp to={1840} />
-            </p>
-          </div>
-          <div className="p-4 rounded-2xl bg-surface ring-1 ring-border">
-            <TrendingUp className="w-4 h-4 text-violet-light mb-2" />
-            <p className="text-xs text-text-secondary">This week</p>
-            <p className="font-display font-bold text-2xl tabular-nums">
-              ₹<CountUp to={11420} />
-            </p>
-          </div>
-        </motion.div>
-
-        <motion.div variants={fadeUp} className="p-5 rounded-3xl bg-surface ring-1 ring-border flex items-center gap-5">
-          <TrustGauge score={94} size={120} />
-          <div>
-            <p className="text-xs uppercase tracking-wider text-text-secondary">Your trust score</p>
-            <p className="font-display font-bold text-xl mt-1">Excellent</p>
-            <p className="text-xs text-text-secondary mt-1">Top 4% of drivers in Delhi</p>
-          </div>
-        </motion.div>
-
-        <motion.div variants={fadeUp} className="p-4 rounded-2xl bg-surface ring-1 ring-border">
-          <div className="flex items-center justify-between mb-3">
-            <p className="font-display font-bold">This week</p>
-            <span className="text-xs text-lime font-semibold">+12%</span>
-          </div>
-          <div className="flex items-end gap-2 h-32">
-            {bars.map((h, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                <motion.div
-                  initial={{ height: 0 }}
-                  animate={{ height: `${h}%` }}
-                  transition={{ delay: 0.2 + i * 0.06, duration: 0.6, ease: "easeOut" }}
-                  className={`w-full rounded-t-lg ${i === 5 ? "bg-lime" : "bg-violet/70"}`}
-                />
-                <span className="text-[10px] text-text-secondary">{days[i]}</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-
         <motion.div variants={fadeUp} className="grid grid-cols-3 gap-3">
-          {[
-            { Icon: IndianRupee, label: "Avg/trip", v: "₹385" },
-            { Icon: Clock, label: "Online hrs", v: "5.2" },
-            { Icon: TrendingUp, label: "Trips", v: "12" },
-          ].map((s) => (
-            <div key={s.label} className="p-3 rounded-2xl bg-surface ring-1 ring-border text-center">
-              <s.Icon className="w-4 h-4 mx-auto text-violet-light mb-1.5" />
-              <p className="font-display font-bold text-sm">{s.v}</p>
-              <p className="text-[10px] text-text-secondary">{s.label}</p>
-            </div>
-          ))}
+          <Stat Icon={Zap} label="Today ₹" value={earnings.data?.today ?? 0} color="text-lime" />
+          <Stat Icon={TrendingUp} label="Week ₹" value={earnings.data?.week ?? 0} color="text-violet-light" />
+          <Stat Icon={IndianRupee} label="Trips" value={earnings.data?.trips ?? 0} color="text-warning" />
         </motion.div>
 
-        {online && (
-          <RippleButton variant="lime" size="lg" block onClick={() => nav({ to: "/incoming-ride" })}>
-            Demo: incoming ride
-          </RippleButton>
-        )}
+        <motion.div variants={fadeUp}>
+          <p className="font-display font-bold mb-3">Nearby ride requests</p>
+          {!online ? (
+            <EmptyState
+              icon={Power}
+              title="You're offline"
+              body="Go online to see live ride requests near you."
+            />
+          ) : open.isLoading ? (
+            <div className="space-y-2">
+              <SkeletonRow />
+              <SkeletonRow />
+            </div>
+          ) : (open.data?.rides ?? []).length === 0 ? (
+            <EmptyState
+              icon={MapPin}
+              title="No requests yet"
+              body="Waiting for nearby riders to book…"
+            />
+          ) : (
+            <div className="space-y-2">
+              {(open.data?.rides ?? []).map((r) => (
+                <button
+                  key={r.id}
+                  onClick={() => pickRide(r.id)}
+                  className="w-full text-left p-4 rounded-2xl bg-gradient-to-br from-violet/15 to-surface ring-1 ring-violet/30 active:scale-[0.99] transition"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="px-2 py-0.5 rounded-md bg-violet/20 text-violet-light text-[10px] font-bold uppercase tracking-wider">
+                      New
+                    </span>
+                    <span className="font-display font-bold text-xl tabular-nums">
+                      ₹{r.fare_estimate ?? 0}
+                    </span>
+                  </div>
+                  <p className="text-sm font-medium truncate">{r.pickup}</p>
+                  <p className="text-xs text-text-secondary truncate">→ {r.drop_loc}</p>
+                  <p className="text-[11px] text-lime mt-2 font-semibold">
+                    Tap to accept
+                  </p>
+                </button>
+              ))}
+            </div>
+          )}
+        </motion.div>
       </motion.div>
     </AppShell>
+  );
+}
+
+function Stat({
+  Icon,
+  label,
+  value,
+  color,
+}: {
+  Icon: typeof Zap;
+  label: string;
+  value: number;
+  color: string;
+}) {
+  return (
+    <div className="p-3 rounded-2xl bg-surface ring-1 ring-border">
+      <Icon className={`w-4 h-4 mb-2 ${color}`} />
+      <p className="font-display font-bold text-base tabular-nums">
+        <CountUp to={value} />
+      </p>
+      <p className="text-[10px] text-text-secondary">{label}</p>
+    </div>
   );
 }
