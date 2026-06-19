@@ -48,7 +48,11 @@ export type Database = {
           name: string | null
           phone: string | null
           photo: string | null
+          plate: string | null
+          rating: number
+          total_trips: number
           updated_at: string
+          vehicle: string | null
         }
         Insert: {
           created_at?: string
@@ -56,7 +60,11 @@ export type Database = {
           name?: string | null
           phone?: string | null
           photo?: string | null
+          plate?: string | null
+          rating?: number
+          total_trips?: number
           updated_at?: string
+          vehicle?: string | null
         }
         Update: {
           created_at?: string
@@ -64,20 +72,29 @@ export type Database = {
           name?: string | null
           phone?: string | null
           photo?: string | null
+          plate?: string | null
+          rating?: number
+          total_trips?: number
           updated_at?: string
+          vehicle?: string | null
         }
         Relationships: []
       }
       rides: {
         Row: {
+          accepted_at: string | null
           ai_reasoning: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
           car_type: string | null
           completed_at: string | null
           created_at: string
+          distance_km: number | null
           driver_id: string | null
           drop_lat: number | null
           drop_lng: number | null
           drop_loc: string
+          duration_min: number | null
           fare_estimate: number | null
           fare_final: number | null
           id: string
@@ -85,18 +102,24 @@ export type Database = {
           pickup: string
           pickup_lat: number | null
           pickup_lng: number | null
+          share_token: string | null
           started_at: string | null
           status: string
         }
         Insert: {
+          accepted_at?: string | null
           ai_reasoning?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           car_type?: string | null
           completed_at?: string | null
           created_at?: string
+          distance_km?: number | null
           driver_id?: string | null
           drop_lat?: number | null
           drop_lng?: number | null
           drop_loc: string
+          duration_min?: number | null
           fare_estimate?: number | null
           fare_final?: number | null
           id?: string
@@ -104,18 +127,24 @@ export type Database = {
           pickup: string
           pickup_lat?: number | null
           pickup_lng?: number | null
+          share_token?: string | null
           started_at?: string | null
           status?: string
         }
         Update: {
+          accepted_at?: string | null
           ai_reasoning?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           car_type?: string | null
           completed_at?: string | null
           created_at?: string
+          distance_km?: number | null
           driver_id?: string | null
           drop_lat?: number | null
           drop_lng?: number | null
           drop_loc?: string
+          duration_min?: number | null
           fare_estimate?: number | null
           fare_final?: number | null
           id?: string
@@ -123,10 +152,59 @@ export type Database = {
           pickup?: string
           pickup_lat?: number | null
           pickup_lng?: number | null
+          share_token?: string | null
           started_at?: string | null
           status?: string
         }
         Relationships: []
+      }
+      sos_incidents: {
+        Row: {
+          created_at: string
+          id: string
+          lat: number
+          lng: number
+          note: string | null
+          resolved: boolean
+          ride_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lat: number
+          lng: number
+          note?: string | null
+          resolved?: boolean
+          ride_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lat?: number
+          lng?: number
+          note?: string | null
+          resolved?: boolean
+          ride_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sos_incidents_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "public_trip_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sos_incidents_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -151,7 +229,28 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_trip_view: {
+        Row: {
+          driver_heading: number | null
+          driver_id: string | null
+          driver_lat: number | null
+          driver_lng: number | null
+          driver_name: string | null
+          drop_lat: number | null
+          drop_lng: number | null
+          drop_loc: string | null
+          id: string | null
+          pickup: string | null
+          pickup_lat: number | null
+          pickup_lng: number | null
+          plate: string | null
+          rating: number | null
+          share_token: string | null
+          status: string | null
+          vehicle: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
