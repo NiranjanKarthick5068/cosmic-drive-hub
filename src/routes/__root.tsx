@@ -84,28 +84,31 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: "width=device-width, initial-scale=1, viewport-fit=cover",
       },
       { name: "theme-color", content: "#05050A" },
-      { title: "DriverLink Pro" },
+      { title: "DriverLink Pro — On-demand drivers for your own car" },
       {
         name: "description",
         content:
-          "On-demand drivers for your own car. Live tracking, AI fare prediction, trust scores.",
+          "DriverLink Pro connects personal car owners with verified on-demand drivers. Live tracking, AI fare prediction, and trust scores.",
       },
-      { property: "og:title", content: "DriverLink Pro" },
+      { property: "og:site_name", content: "DriverLink Pro" },
+      { property: "og:title", content: "DriverLink Pro — On-demand drivers for your own car" },
       {
         property: "og:description",
-        content: "On-demand drivers for your own car.",
+        content:
+          "DriverLink Pro connects personal car owners with verified on-demand drivers. Live tracking, AI fare prediction, and trust scores.",
       },
       { property: "og:type", content: "website" },
-      { name: "twitter:title", content: "DriverLink Pro" },
-      { name: "description", content: "Cosmic Ride is a full-stack on-demand driver hiring web app for personal car owners." },
-      { property: "og:description", content: "Cosmic Ride is a full-stack on-demand driver hiring web app for personal car owners." },
-      { name: "twitter:description", content: "Cosmic Ride is a full-stack on-demand driver hiring web app for personal car owners." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/e3cad68e-a277-4c4e-b2f9-76d21632dfbe/id-preview-8443478c--e36f23e0-bb8a-4986-916c-45d9ca2deb75.lovable.app-1780465395119.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/e3cad68e-a277-4c4e-b2f9-76d21632dfbe/id-preview-8443478c--e36f23e0-bb8a-4986-916c-45d9ca2deb75.lovable.app-1780465395119.png" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "DriverLink Pro — On-demand drivers for your own car" },
+      {
+        name: "twitter:description",
+        content:
+          "DriverLink Pro connects personal car owners with verified on-demand drivers. Live tracking, AI fare prediction, and trust scores.",
+      },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
+
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
