@@ -19,7 +19,19 @@ import {
   MapPin,
 } from "lucide-react";
 
-export const Route = createFileRoute("/home")({ component: Home });
+export const Route = createFileRoute("/home")({
+  head: () => ({
+    meta: [
+      { title: "Home — DriverLink Pro" },
+      { name: "description", content: "Book a driver, view recent rides, and manage your DriverLink Pro account." },
+      { property: "og:title", content: "Home — DriverLink Pro" },
+      { property: "og:description", content: "Book a driver, view recent rides, and manage your DriverLink Pro account." },
+      { property: "og:url", content: "https://cosmic-drive-hub.lovable.app/home" },
+    ],
+    links: [{ rel: "canonical", href: "https://cosmic-drive-hub.lovable.app/home" }],
+  }),
+  component: Home,
+});
 
 function Home() {
   const nav = useNavigate();

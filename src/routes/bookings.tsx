@@ -11,7 +11,19 @@ import { useSession } from "@/hooks/use-session";
 import { listMyRides } from "@/lib/rides.functions";
 import { MapPin, ClipboardList } from "lucide-react";
 
-export const Route = createFileRoute("/bookings")({ component: Bookings });
+export const Route = createFileRoute("/bookings")({
+  head: () => ({
+    meta: [
+      { title: "Your bookings — DriverLink Pro" },
+      { name: "description", content: "See past, active, and cancelled DriverLink Pro rides." },
+      { property: "og:title", content: "Your bookings — DriverLink Pro" },
+      { property: "og:description", content: "See past, active, and cancelled DriverLink Pro rides." },
+      { property: "og:url", content: "https://cosmic-drive-hub.lovable.app/bookings" },
+    ],
+    links: [{ rel: "canonical", href: "https://cosmic-drive-hub.lovable.app/bookings" }],
+  }),
+  component: Bookings,
+});
 
 const FILTERS = ["All", "Completed", "Cancelled", "Active"] as const;
 

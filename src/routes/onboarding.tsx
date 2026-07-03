@@ -6,6 +6,16 @@ import { RippleButton } from "@/components/dl/RippleButton";
 import { Car, ShieldCheck, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/onboarding")({
+  head: () => ({
+    meta: [
+      { title: "Welcome to DriverLink Pro — DriverLink Pro" },
+      { name: "description", content: "Discover on-demand drivers, live tracking, and AI trust scores." },
+      { property: "og:title", content: "Welcome to DriverLink Pro — DriverLink Pro" },
+      { property: "og:description", content: "Discover on-demand drivers, live tracking, and AI trust scores." },
+      { property: "og:url", content: "https://cosmic-drive-hub.lovable.app/onboarding" },
+    ],
+    links: [{ rel: "canonical", href: "https://cosmic-drive-hub.lovable.app/onboarding" }],
+  }),
   component: Onboarding,
 });
 

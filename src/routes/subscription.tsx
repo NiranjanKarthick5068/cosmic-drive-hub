@@ -3,7 +3,19 @@ import { PhoneFrame, StatusBar } from "@/components/dl/PhoneFrame";
 import { EmptyState } from "@/components/dl/EmptyState";
 import { ArrowLeft, Crown } from "lucide-react";
 
-export const Route = createFileRoute("/subscription")({ component: Sub });
+export const Route = createFileRoute("/subscription")({
+  head: () => ({
+    meta: [
+      { title: "Subscription plans — DriverLink Pro" },
+      { name: "description", content: "Upgrade your DriverLink Pro plan for priority drivers and lower fares." },
+      { property: "og:title", content: "Subscription plans — DriverLink Pro" },
+      { property: "og:description", content: "Upgrade your DriverLink Pro plan for priority drivers and lower fares." },
+      { property: "og:url", content: "https://cosmic-drive-hub.lovable.app/subscription" },
+    ],
+    links: [{ rel: "canonical", href: "https://cosmic-drive-hub.lovable.app/subscription" }],
+  }),
+  component: Sub,
+});
 
 function Sub() {
   const nav = useNavigate();

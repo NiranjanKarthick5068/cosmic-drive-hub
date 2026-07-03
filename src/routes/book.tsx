@@ -13,7 +13,19 @@ import { createRide } from "@/lib/rides.functions";
 import { setCurrentRideId } from "@/lib/current-ride";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/book")({ component: Book });
+export const Route = createFileRoute("/book")({
+  head: () => ({
+    meta: [
+      { title: "Book a driver — DriverLink Pro" },
+      { name: "description", content: "Set your pickup and drop, choose a car, and book a verified DriverLink Pro driver." },
+      { property: "og:title", content: "Book a driver — DriverLink Pro" },
+      { property: "og:description", content: "Set your pickup and drop, choose a car, and book a verified DriverLink Pro driver." },
+      { property: "og:url", content: "https://cosmic-drive-hub.lovable.app/book" },
+    ],
+    links: [{ rel: "canonical", href: "https://cosmic-drive-hub.lovable.app/book" }],
+  }),
+  component: Book,
+});
 
 const cars = ["Hatchback", "Sedan", "SUV"] as const;
 type CarType = (typeof cars)[number];

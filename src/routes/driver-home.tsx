@@ -20,7 +20,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { Power, Zap, TrendingUp, MapPin, IndianRupee } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/driver-home")({ component: DriverHome });
+export const Route = createFileRoute("/driver-home")({
+  head: () => ({
+    meta: [
+      { title: "Driver dashboard — DriverLink Pro" },
+      { name: "description", content: "Go online, accept nearby rides, and track your earnings on DriverLink Pro." },
+      { property: "og:title", content: "Driver dashboard — DriverLink Pro" },
+      { property: "og:description", content: "Go online, accept nearby rides, and track your earnings on DriverLink Pro." },
+      { property: "og:url", content: "https://cosmic-drive-hub.lovable.app/driver-home" },
+    ],
+    links: [{ rel: "canonical", href: "https://cosmic-drive-hub.lovable.app/driver-home" }],
+  }),
+  component: DriverHome,
+});
 
 function DriverHome() {
   const nav = useNavigate();

@@ -7,7 +7,19 @@ import { setRole as setRoleFn } from "@/lib/rides.functions";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/role")({ component: Role });
+export const Route = createFileRoute("/role")({
+  head: () => ({
+    meta: [
+      { title: "Choose your role — DriverLink Pro" },
+      { name: "description", content: "Continue as a rider or a driver on DriverLink Pro." },
+      { property: "og:title", content: "Choose your role — DriverLink Pro" },
+      { property: "og:description", content: "Continue as a rider or a driver on DriverLink Pro." },
+      { property: "og:url", content: "https://cosmic-drive-hub.lovable.app/role" },
+    ],
+    links: [{ rel: "canonical", href: "https://cosmic-drive-hub.lovable.app/role" }],
+  }),
+  component: Role,
+});
 
 function Card({
   title, desc, accent, Icon, onClick, delay, disabled,

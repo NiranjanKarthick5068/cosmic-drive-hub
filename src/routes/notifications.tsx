@@ -3,7 +3,19 @@ import { PhoneFrame, StatusBar } from "@/components/dl/PhoneFrame";
 import { EmptyState } from "@/components/dl/EmptyState";
 import { ArrowLeft, Bell } from "lucide-react";
 
-export const Route = createFileRoute("/notifications")({ component: Notifications });
+export const Route = createFileRoute("/notifications")({
+  head: () => ({
+    meta: [
+      { title: "Notifications — DriverLink Pro" },
+      { name: "description", content: "Ride updates, driver alerts, and account activity on DriverLink Pro." },
+      { property: "og:title", content: "Notifications — DriverLink Pro" },
+      { property: "og:description", content: "Ride updates, driver alerts, and account activity on DriverLink Pro." },
+      { property: "og:url", content: "https://cosmic-drive-hub.lovable.app/notifications" },
+    ],
+    links: [{ rel: "canonical", href: "https://cosmic-drive-hub.lovable.app/notifications" }],
+  }),
+  component: Notifications,
+});
 
 function Notifications() {
   const nav = useNavigate();

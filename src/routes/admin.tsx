@@ -9,7 +9,19 @@ import { EmptyState } from "@/components/dl/EmptyState";
 import { adminStats } from "@/lib/rides.functions";
 import { Users, Power, Car, IndianRupee, ShieldOff } from "lucide-react";
 
-export const Route = createFileRoute("/admin")({ component: Admin });
+export const Route = createFileRoute("/admin")({
+  head: () => ({
+    meta: [
+      { title: "Admin console — DriverLink Pro" },
+      { name: "description", content: "Live operations and platform stats for DriverLink Pro administrators." },
+      { property: "og:title", content: "Admin console — DriverLink Pro" },
+      { property: "og:description", content: "Live operations and platform stats for DriverLink Pro administrators." },
+      { property: "og:url", content: "https://cosmic-drive-hub.lovable.app/admin" },
+    ],
+    links: [{ rel: "canonical", href: "https://cosmic-drive-hub.lovable.app/admin" }],
+  }),
+  component: Admin,
+});
 
 function Admin() {
   const nav = useNavigate();

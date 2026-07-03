@@ -7,7 +7,19 @@ import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/otp")({ component: OTP });
+export const Route = createFileRoute("/otp")({
+  head: () => ({
+    meta: [
+      { title: "Verify your number — DriverLink Pro" },
+      { name: "description", content: "Enter the one-time code to verify your DriverLink Pro account." },
+      { property: "og:title", content: "Verify your number — DriverLink Pro" },
+      { property: "og:description", content: "Enter the one-time code to verify your DriverLink Pro account." },
+      { property: "og:url", content: "https://cosmic-drive-hub.lovable.app/otp" },
+    ],
+    links: [{ rel: "canonical", href: "https://cosmic-drive-hub.lovable.app/otp" }],
+  }),
+  component: OTP,
+});
 
 function OTP() {
   const nav = useNavigate();

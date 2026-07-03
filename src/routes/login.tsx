@@ -9,7 +9,19 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 
-export const Route = createFileRoute("/login")({ component: Login });
+export const Route = createFileRoute("/login")({
+  head: () => ({
+    meta: [
+      { title: "Sign in — DriverLink Pro" },
+      { name: "description", content: "Sign in to DriverLink Pro to book verified on-demand drivers." },
+      { property: "og:title", content: "Sign in — DriverLink Pro" },
+      { property: "og:description", content: "Sign in to DriverLink Pro to book verified on-demand drivers." },
+      { property: "og:url", content: "https://cosmic-drive-hub.lovable.app/login" },
+    ],
+    links: [{ rel: "canonical", href: "https://cosmic-drive-hub.lovable.app/login" }],
+  }),
+  component: Login,
+});
 
 function Login() {
   const [email, setEmail] = useState("");

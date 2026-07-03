@@ -13,7 +13,19 @@ import { getCurrentRideId, clearCurrentRideId } from "@/lib/current-ride";
 import { Phone, ShieldAlert, Navigation, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/tracking")({ component: Tracking });
+export const Route = createFileRoute("/tracking")({
+  head: () => ({
+    meta: [
+      { title: "Live tracking — DriverLink Pro" },
+      { name: "description", content: "Follow your driver in real time on the map with live ETA updates." },
+      { property: "og:title", content: "Live tracking — DriverLink Pro" },
+      { property: "og:description", content: "Follow your driver in real time on the map with live ETA updates." },
+      { property: "og:url", content: "https://cosmic-drive-hub.lovable.app/tracking" },
+    ],
+    links: [{ rel: "canonical", href: "https://cosmic-drive-hub.lovable.app/tracking" }],
+  }),
+  component: Tracking,
+});
 
 function Tracking() {
   const nav = useNavigate();

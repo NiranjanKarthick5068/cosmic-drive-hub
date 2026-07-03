@@ -6,12 +6,16 @@ import { PhoneFrame } from "@/components/dl/PhoneFrame";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "DriverLink Pro" },
+      { title: "DriverLink Pro — On-demand drivers for your own car" },
       {
         name: "description",
-        content: "On-demand drivers for your own car — book, track and pay in seconds.",
+        content: "DriverLink Pro connects personal car owners with verified on-demand drivers. Book, track, and pay in seconds.",
       },
+      { property: "og:title", content: "DriverLink Pro — On-demand drivers for your own car" },
+      { property: "og:description", content: "Book verified on-demand drivers for your own car — live tracking, AI fare prediction, trust scores." },
+      { property: "og:url", content: "https://cosmic-drive-hub.lovable.app/" },
     ],
+    links: [{ rel: "canonical", href: "https://cosmic-drive-hub.lovable.app/" }],
   }),
   component: Splash,
 });

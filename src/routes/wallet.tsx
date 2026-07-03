@@ -5,7 +5,19 @@ import { fadeUp, stagger } from "@/components/dl/PageTransition";
 import { EmptyState } from "@/components/dl/EmptyState";
 import { Wallet as WalletIcon } from "lucide-react";
 
-export const Route = createFileRoute("/wallet")({ component: Wallet });
+export const Route = createFileRoute("/wallet")({
+  head: () => ({
+    meta: [
+      { title: "Wallet — DriverLink Pro" },
+      { name: "description", content: "Track your DriverLink Pro balance, top-ups, and ride payments." },
+      { property: "og:title", content: "Wallet — DriverLink Pro" },
+      { property: "og:description", content: "Track your DriverLink Pro balance, top-ups, and ride payments." },
+      { property: "og:url", content: "https://cosmic-drive-hub.lovable.app/wallet" },
+    ],
+    links: [{ rel: "canonical", href: "https://cosmic-drive-hub.lovable.app/wallet" }],
+  }),
+  component: Wallet,
+});
 
 function Wallet() {
   return (
