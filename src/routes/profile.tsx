@@ -16,7 +16,19 @@ import {
   Settings,
 } from "lucide-react";
 
-export const Route = createFileRoute("/profile")({ component: Profile });
+export const Route = createFileRoute("/profile")({
+  head: () => ({
+    meta: [
+      { title: "Your profile — DriverLink Pro" },
+      { name: "description", content: "Manage your DriverLink Pro profile, vehicles, and account settings." },
+      { property: "og:title", content: "Your profile — DriverLink Pro" },
+      { property: "og:description", content: "Manage your DriverLink Pro profile, vehicles, and account settings." },
+      { property: "og:url", content: "https://cosmic-drive-hub.lovable.app/profile" },
+    ],
+    links: [{ rel: "canonical", href: "https://cosmic-drive-hub.lovable.app/profile" }],
+  }),
+  component: Profile,
+});
 
 const rows = [
   { Icon: Crown, label: "Subscription", to: "/subscription", color: "text-warning" },

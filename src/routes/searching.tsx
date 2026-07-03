@@ -10,7 +10,19 @@ import { cancelRide } from "@/lib/rides.functions";
 import { getCurrentRideId, clearCurrentRideId } from "@/lib/current-ride";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/searching")({ component: Searching });
+export const Route = createFileRoute("/searching")({
+  head: () => ({
+    meta: [
+      { title: "Finding a driver — DriverLink Pro" },
+      { name: "description", content: "We're matching you with the nearest verified DriverLink Pro driver." },
+      { property: "og:title", content: "Finding a driver — DriverLink Pro" },
+      { property: "og:description", content: "We're matching you with the nearest verified DriverLink Pro driver." },
+      { property: "og:url", content: "https://cosmic-drive-hub.lovable.app/searching" },
+    ],
+    links: [{ rel: "canonical", href: "https://cosmic-drive-hub.lovable.app/searching" }],
+  }),
+  component: Searching,
+});
 
 function Searching() {
   const nav = useNavigate();

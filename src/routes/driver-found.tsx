@@ -9,7 +9,19 @@ import { getRide } from "@/lib/rides.functions";
 import { getCurrentRideId } from "@/lib/current-ride";
 import { Star, Car, ArrowLeft, AlertCircle } from "lucide-react";
 
-export const Route = createFileRoute("/driver-found")({ component: DriverFound });
+export const Route = createFileRoute("/driver-found")({
+  head: () => ({
+    meta: [
+      { title: "Driver found — DriverLink Pro" },
+      { name: "description", content: "Your DriverLink Pro driver is confirmed and on the way." },
+      { property: "og:title", content: "Driver found — DriverLink Pro" },
+      { property: "og:description", content: "Your DriverLink Pro driver is confirmed and on the way." },
+      { property: "og:url", content: "https://cosmic-drive-hub.lovable.app/driver-found" },
+    ],
+    links: [{ rel: "canonical", href: "https://cosmic-drive-hub.lovable.app/driver-found" }],
+  }),
+  component: DriverFound,
+});
 
 function DriverFound() {
   const nav = useNavigate();

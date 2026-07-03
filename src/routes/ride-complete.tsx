@@ -10,7 +10,19 @@ import { getRide } from "@/lib/rides.functions";
 import { getCurrentRideId, clearCurrentRideId } from "@/lib/current-ride";
 import { Check, Star } from "lucide-react";
 
-export const Route = createFileRoute("/ride-complete")({ component: RideComplete });
+export const Route = createFileRoute("/ride-complete")({
+  head: () => ({
+    meta: [
+      { title: "Ride complete — DriverLink Pro" },
+      { name: "description", content: "Rate your driver and view the trip summary for your DriverLink Pro ride." },
+      { property: "og:title", content: "Ride complete — DriverLink Pro" },
+      { property: "og:description", content: "Rate your driver and view the trip summary for your DriverLink Pro ride." },
+      { property: "og:url", content: "https://cosmic-drive-hub.lovable.app/ride-complete" },
+    ],
+    links: [{ rel: "canonical", href: "https://cosmic-drive-hub.lovable.app/ride-complete" }],
+  }),
+  component: RideComplete,
+});
 
 function RideComplete() {
   const nav = useNavigate();
