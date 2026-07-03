@@ -52,11 +52,10 @@ export const setRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => RoleInput.parse(input))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
-      .from("user_roles")
-      .insert({ user_id: context.userId, role: data.role });
-    if (error && !error.message.toLowerCase().includes("duplicate"))
-      throw new Error(error.message);
+    const { error } = await context.supabase.rpc("assign_self_role", {
+      _role: data.role,
+    });
+    if (error) throw new Error(error.message);
     return { ok: true };
   });
 
