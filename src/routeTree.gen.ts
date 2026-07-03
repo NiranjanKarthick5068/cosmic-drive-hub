@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as TrackingRouteImport } from './routes/tracking'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SearchingRouteImport } from './routes/searching'
 import { Route as RoleRouteImport } from './routes/role'
 import { Route as RideCompleteRouteImport } from './routes/ride-complete'
@@ -41,6 +42,11 @@ const TrackingRoute = TrackingRouteImport.update({
 const SubscriptionRoute = SubscriptionRouteImport.update({
   id: '/subscription',
   path: '/subscription',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchingRoute = SearchingRouteImport.update({
@@ -135,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/ride-complete': typeof RideCompleteRoute
   '/role': typeof RoleRoute
   '/searching': typeof SearchingRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/subscription': typeof SubscriptionRoute
   '/tracking': typeof TrackingRoute
   '/wallet': typeof WalletRoute
@@ -155,6 +162,7 @@ export interface FileRoutesByTo {
   '/ride-complete': typeof RideCompleteRoute
   '/role': typeof RoleRoute
   '/searching': typeof SearchingRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/subscription': typeof SubscriptionRoute
   '/tracking': typeof TrackingRoute
   '/wallet': typeof WalletRoute
@@ -176,6 +184,7 @@ export interface FileRoutesById {
   '/ride-complete': typeof RideCompleteRoute
   '/role': typeof RoleRoute
   '/searching': typeof SearchingRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/subscription': typeof SubscriptionRoute
   '/tracking': typeof TrackingRoute
   '/wallet': typeof WalletRoute
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/ride-complete'
     | '/role'
     | '/searching'
+    | '/sitemap.xml'
     | '/subscription'
     | '/tracking'
     | '/wallet'
@@ -218,6 +228,7 @@ export interface FileRouteTypes {
     | '/ride-complete'
     | '/role'
     | '/searching'
+    | '/sitemap.xml'
     | '/subscription'
     | '/tracking'
     | '/wallet'
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/ride-complete'
     | '/role'
     | '/searching'
+    | '/sitemap.xml'
     | '/subscription'
     | '/tracking'
     | '/wallet'
@@ -259,6 +271,7 @@ export interface RootRouteChildren {
   RideCompleteRoute: typeof RideCompleteRoute
   RoleRoute: typeof RoleRoute
   SearchingRoute: typeof SearchingRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SubscriptionRoute: typeof SubscriptionRoute
   TrackingRoute: typeof TrackingRoute
   WalletRoute: typeof WalletRoute
@@ -285,6 +298,13 @@ declare module '@tanstack/react-router' {
       path: '/subscription'
       fullPath: '/subscription'
       preLoaderRoute: typeof SubscriptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/searching': {
@@ -411,6 +431,7 @@ const rootRouteChildren: RootRouteChildren = {
   RideCompleteRoute: RideCompleteRoute,
   RoleRoute: RoleRoute,
   SearchingRoute: SearchingRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   SubscriptionRoute: SubscriptionRoute,
   TrackingRoute: TrackingRoute,
   WalletRoute: WalletRoute,
